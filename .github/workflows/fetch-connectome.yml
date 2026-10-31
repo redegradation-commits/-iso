@@ -1,0 +1,33 @@
+name: Fetch connectome task files
+
+on:
+  push:
+    branches: ['arena/4239e878-iso']
+    paths:
+      - '.github/workflows/fetch-connectome.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download task attachments
+        run: |
+          mkdir -p raw
+          curl -fL --retry 4 --retry-delay 2 -o raw/message.bin 'https://game.ctfcup.online/attachments/88c96ad0b1b7ccd6/message.bin'
+          curl -fL --retry 4 --retry-delay 2 -o raw/adjacency.csv.gz 'https://game.ctfcup.online/attachments/5a4830f101676a4e/adjacency.csv.gz'
+          ls -l raw
+          file raw/* || true
+          sha256sum raw/*
+          gzip -l raw/adjacency.csv.gz || true
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: connectome-files
+          path: raw/*
+          compression-level: 0
+          if-no-files-found: error
