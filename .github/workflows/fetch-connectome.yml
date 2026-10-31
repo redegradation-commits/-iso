@@ -5,6 +5,7 @@ on:
     branches: ['arena/4239e878-iso']
     paths:
       - '.github/workflows/fetch-connectome.yml'
+      - 'solver/fetch_annotations.py'
   workflow_dispatch:
 
 permissions:
@@ -16,20 +17,20 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Download task attachments
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download MaleCNS annotations for graph nodes
         run: |
-          mkdir -p raw
-          curl -fL --retry 4 --retry-delay 2 -o raw/message.bin 'https://game.ctfcup.online/attachments/88c96ad0b1b7ccd6/message.bin'
-          curl -fL --retry 4 --retry-delay 2 -o raw/adjacency.csv.gz 'https://game.ctfcup.online/attachments/5a4830f101676a4e/adjacency.csv.gz'
+          python -m pip install --quiet pandas pyarrow
+          python -u solver/fetch_annotations.py
           ls -l raw
-          file raw/* || true
-          sha256sum raw/*
-          gzip -l raw/adjacency.csv.gz || true
-      - name: Commit downloaded files to the session branch
+          head -5 raw/annotations_subset.csv || true
+      - name: Commit results to the session branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f raw
-          git commit -m 'Add downloaded connectome attachments'
+          git add -f raw/annotations_subset.csv raw/nt_subset.csv
+          git commit -m 'Add MaleCNS annotations for connectome graph nodes'
           git pull --rebase origin arena/4239e878-iso
           git push origin HEAD:arena/4239e878-iso
