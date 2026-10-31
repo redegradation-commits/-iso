@@ -1,0 +1,9 @@
+file=connectome-weights-male-cns-v1.0-minconf-0.5-significant-only.feather
+rows=25568639
+body_pre: int64
+body_post: int64
+weight: int64
+type_pre: string
+type_post: string
+-- schema metadata --
+pandas: '{"index_columns": [{"kind": "range", "name": null, "start": 0, "' + 837
