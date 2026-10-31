@@ -8,13 +8,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
+      - uses: actions/checkout@v4
       - name: Download task attachments
         run: |
           mkdir -p raw
@@ -24,10 +25,11 @@ jobs:
           file raw/* || true
           sha256sum raw/*
           gzip -l raw/adjacency.csv.gz || true
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: connectome-files
-          path: raw/*
-          compression-level: 0
-          if-no-files-found: error
+      - name: Commit downloaded files to the session branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f raw
+          git commit -m 'Add downloaded connectome attachments'
+          git pull --rebase origin arena/4239e878-iso
+          git push origin HEAD:arena/4239e878-iso
