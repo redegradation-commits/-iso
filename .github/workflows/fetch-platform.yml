@@ -1,0 +1,33 @@
+name: Fetch public task page
+
+on:
+  push:
+    branches: ['arena/4239e878-iso']
+    paths:
+      - '.github/workflows/fetch-platform.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch public pages
+        run: |
+          set -x
+          curl -k -sS -L --max-time 60 'https://game.ctfcup.online/platform/tasks' -o raw/platform_tasks.html || true
+          curl -k -sS -L --max-time 60 'https://game.ctfcup.online/' -o raw/platform_root.html || true
+          wc -c raw/platform_tasks.html raw/platform_root.html || true
+          head -c 500 raw/platform_tasks.html || true
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f raw/platform_tasks.html raw/platform_root.html
+          git commit -m 'Add public platform task page snapshot' || true
+          git pull --rebase origin arena/4239e878-iso
+          git push origin HEAD:arena/4239e878-iso
