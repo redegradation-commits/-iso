@@ -1,5 +1,9 @@
 name: fetch-iso
 on:
+  push:
+    branches: ['arena/4239e878-iso']
+    paths:
+      - '.github/workflows/fetch-iso.yml'
   workflow_dispatch:
 jobs:
   fetch:
