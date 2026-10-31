@@ -1,0 +1,23 @@
+name: fetch-iso
+on:
+  workflow_dispatch:
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download
+        run: |
+          mkdir -p raw
+          curl -fsSL --retry 3 -o raw/iso.tar.gz "https://game.ctfcup.online/attachments/d9663459075557db/iso.tar.gz"
+          ls -l raw/iso.tar.gz
+          tar tzf raw/iso.tar.gz | head -50
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f raw/iso.tar.gz
+          git commit -m "Add iso attachment" || true
+          git push
